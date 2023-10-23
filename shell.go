@@ -1,51 +1,51 @@
 package main
 
 import (
-	"fmt"
 	"bufio"
+	"fmt"
 	"os"
 	"strings"
 )
 
-
-func split_command_input(cmds string)  {
-    separators := []rune{' '}
-        f := func(r rune) bool {
-            for _, cmds := range separators {
-	        if r == cmds {
-		   return true
+func splitCommandLineInput(cmds string) []string {
+	separators := []rune{' '}
+	f := func(r rune) bool {
+		for _, sep := range separators {
+			if r == sep {
+				return true
+			}
 		}
-	    }
-	  return false
+		return false
 	}
-	cmd_array := strings.FieldsFunc(cmds,f)
-	cmd_array = cmd_array[:len(cmd_array)]
-	fmt.Printf("%s", cmd_array)
+	return strings.FieldsFunc(cmds, f)
 }
 
-
 func main() {
-
-    cwd := make([]string, 4096)
-    cwd[0] = "%"
-    host, err := os.Hostname()
-    if err != nil {
-        panic(err)
-    }
-    buffer := bufio.NewReader(os.Stdin)
-
-    for {
-	dir, err := os.Getwd()
+	cwd := make([]string, 4096)
+	cwd[0] = "%"
+	host, err := os.Hostname()
 	if err != nil {
-	    panic(err)
+		panic(err)
 	}
-	cwd[0] = dir
-        fmt.Printf("%s@%s %s %s" , os.Getenv("LOGNAME"), host,  cwd[0], "> ")
-        line, _ := buffer.ReadString('\n')
-	line = strings.TrimSuffix(line, "\n")
-        if (len(line) == 1) {
-            break
-        }
-    split_command_input(line)
-    }
+	reader := bufio.NewReader(os.Stdin)
+
+	for {
+		cwd[0], err = os.Getwd()
+		if err != nil {
+			panic(err)
+		}
+		fmt.Printf("%s@%s %s %s", os.Getenv("LOGNAME"), host, cwd[0], "> ")
+		line, err := reader.ReadString('\n')
+		if err != nil {
+			panic(err)
+		}
+		line = strings.TrimSuffix(line, "\n")
+		if len(line) == 0 {
+			break
+		}
+
+		args := splitCommandLineInput(line)
+		_ = args
+		// Do something with the args
+	}
 }
